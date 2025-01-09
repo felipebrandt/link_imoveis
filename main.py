@@ -6,6 +6,9 @@ from models import URL, Property
 import streamlit as st
 
 
+import locale
+locale.setlocale(locale.LC_ALL, "de_DE")
+
 def get_url():
     print(f'{datetime.datetime.now()} -- Extracting Datas From Data Files')
     lines_read = 0
