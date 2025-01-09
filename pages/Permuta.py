@@ -1,6 +1,6 @@
 import streamlit as st
 from pandas import DataFrame
-from src.domain.models import Property
+from models import Property
 
 
 def format_markdown(type_text, text):

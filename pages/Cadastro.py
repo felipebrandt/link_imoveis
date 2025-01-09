@@ -1,5 +1,5 @@
 import streamlit as st
-from src.domain.models import Property
+from models import Property
 from datetime import datetime
 
 

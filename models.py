@@ -1,7 +1,7 @@
 from datetime import datetime
 from peewee import *
-from src.adapters.db_connection import db
-from src.adapters.address_utils import get_json_address_by_cep, get_cep_by_olx_address
+from db_connection import db
+from address_utils import get_json_address_by_cep, get_cep_by_olx_address
 import streamlit as st
 
 

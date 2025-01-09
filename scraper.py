@@ -1,9 +1,9 @@
 import time
-from src.adapters.image_utils import base64_to_png
+from image_utils import base64_to_png
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import base64
-from src.domain.models import *
+from models import *
 import locale
 
 locale.setlocale(locale.LC_TIME, "pt")
