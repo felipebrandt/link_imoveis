@@ -9,7 +9,7 @@ import streamlit as st
 def get_url():
     print(f'{datetime.datetime.now()} -- Extracting Datas From Data Files')
     lines_read = 0
-    with open('src/domain/url_data.csv') as file:
+    with open('domain/url_data.csv') as file:
         file_array = file.readlines()
         total_lines = len(file_array)
         for line in file_array:
@@ -23,7 +23,7 @@ def get_url():
             new_url.save(force_insert=True)
             print(f'{datetime.datetime.now()} -- URL Save Success! --> {(1 - lines_read/total_lines)*100}% to Finish')
 
-    with open('src/domain/url_data.csv', 'w') as file:
+    with open('domain/url_data.csv', 'w') as file:
         file.close()
 
 
