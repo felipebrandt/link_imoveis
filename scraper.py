@@ -6,7 +6,7 @@ import base64
 from models import *
 import locale
 
-locale.setlocale(locale.LC_TIME, "pt")
+locale.setlocale(locale.LC_TIME, "pt_BR")
 
 
 class SeleniumOLX:
