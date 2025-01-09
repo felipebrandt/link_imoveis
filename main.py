@@ -57,7 +57,7 @@ def get_property():
 
 
 if __name__ == '__main__':
-    st.image("C:\\Users\\pfsb2\\PycharmProjects\\link_imoveis\\linkimovel.png")
+    st.image("linkimovel.png")
     # from src.adapters.address_utils import *
     # get_address_by_cep('123456')
 
