@@ -1,14 +1,14 @@
 from peewee import *
-
+from os import getenv
 BASE = 'local'
 
 
 if BASE == 'local':
-    db = PostgresqlDatabase(database='defaultdb',
-                       host='linkimovel-brain-ag.l.aivencloud.com',
-                       port='21242',
-                       user='avnadmin',
-                       password='AVNS_FLSIPqCapJPjpvmSHTG')
+    db = PostgresqlDatabase(database=getenv('DATABASE', ''),
+                            host=getenv('HOST', ''),
+                            port=getenv('PORT', ''),
+                            user=getenv('USER', ''),
+                            password=getenv('PASSWORD', ''))
 else:
     db = PostgresqlDatabase(database=ENVIRON.DB,
                        host=ENVIRON.HOST,
