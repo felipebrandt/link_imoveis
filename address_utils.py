@@ -6,6 +6,10 @@ def get_json_address_by_cep(cep):
     json_address = get_address_by_cep(cep)
     json_address['cep'] = cep
     json_address['latitude'], json_address['longitude'] = get_geolocation(json_address)
+    if json_address['latitude']:
+        json_address['status'] = 200
+    else:
+        json_address['status'] = 404
     return json_address
 
 
