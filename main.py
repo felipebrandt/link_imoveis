@@ -80,7 +80,7 @@ def main():
         if not st.session_state['actual_session'].is_timeout():
             need_login = False
         else:
-            st.session_state['actual_session'].timeout()
+            st.session_state['actual_session'].end_session()
             st.session_state["authenticated"] = False
     else:
         if not st.session_state.get('actual_session'):

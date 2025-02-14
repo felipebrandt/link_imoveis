@@ -1,5 +1,5 @@
 from models import PropertyType, Session, RealState, State, City, District
-from uuid import getnode
+from uuid import uuid4
 from streamlit_cookies_controller import CookieController
 import streamlit as st
 
@@ -40,11 +40,11 @@ def get_district_id_dict(city, name_city, name_state):
 
 
 def get_uuid():
-    return getnode()
+    return int(uuid4())
 
 
-def get_actual_session(session_id):
-    has_session = Session.get_status_session(session_id)
+def get_actual_session(session_uuid):
+    has_session = Session.get_status_session(session_uuid)
     if has_session:
         return has_session.get()
     return None
@@ -63,7 +63,7 @@ def start_page():
     if 'actual_session' not in st.session_state:
         st.session_state['actual_session'] = None
     elif st.session_state['actual_session']:
-        controller.set('lk_actual_session_id', st.session_state['actual_session'].session_id)
+        controller.set('lk_actual_session_id', st.session_state['actual_session'].session_uuid)
 
     if "logged_real_state" not in st.session_state:
         st.session_state["logged_real_state"] = None
@@ -87,7 +87,10 @@ def start_page():
         st.session_state.notificacoes = []
 
     if "uuid" not in st.session_state:
-        st.session_state["uuid"] = get_uuid()
+        if controller.get('lk_actual_session_id'):
+            st.session_state["uuid"] = controller.get('lk_actual_session_id')
+        else:
+            st.session_state["uuid"] = get_uuid()
 
 
 def logout_sidebar_page():
@@ -122,10 +125,11 @@ def logout_sidebar_page_permute():
 
 
 def login_routines(session):
-    controller.set('lk_actual_session_id', session.session_id)
+    controller.set('lk_actual_session_id', session.session_uuid)
     st.session_state["authenticated"] = True
     st.session_state["logged_real_state"] = session.logged_user_real_state
     st.session_state["logged_broker"] = session.logged_user_broker
-    print(session.logged_user_real_state)
+
 
 get_location_dict()
+

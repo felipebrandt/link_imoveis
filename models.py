@@ -460,7 +460,7 @@ class Match(BaseModel):
 
 class Session(BaseModel):
     session_id = AutoField(primary_key=True, help_text='Id do Imovel')
-    session_uuid = BigIntegerField()
+    session_uuid = CharField(max_length=255, index=True)
     logged_user_real_state = ForeignKeyField(RealState, to_field='user_id', null=True)
     logged_user_broker = ForeignKeyField(Broker, to_field='user_id', null=True)
     valid_datetime = DateTimeField()
@@ -487,8 +487,8 @@ class Session(BaseModel):
 
 
     @staticmethod
-    def get_status_session(session_id):
-        return Session.select().where(Session.session_id == session_id)
+    def get_status_session(session_uuid):
+        return Session.select().where(Session.session_uuid == session_uuid)
 
 
 class JobList(BaseModel):

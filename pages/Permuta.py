@@ -33,7 +33,7 @@ def main():
             main_page()
             need_login = False
         else:
-            st.session_state['actual_session'].timeout()
+            st.session_state['actual_session'].end_session()
             st.session_state["authenticated"] = False
             st.switch_page("main.py")
     else:
