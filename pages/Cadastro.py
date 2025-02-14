@@ -1,7 +1,7 @@
 import streamlit as st
 from models import Property, URL, RealState, Broker, Address, MatchRequest, PropertyLocation, JobList
 from datetime import datetime
-from settings import start_page
+from settings import start_page, get_city_id_dict, get_district_id_dict
 from time import sleep
 from streamlit_cookies_controller import CookieController
 from settings import get_actual_session, logout_sidebar_page, login_routines
@@ -159,6 +159,9 @@ def main_page():
                                               placeholder='Escolha um Estado...')
                     if name_state:
                         property_location.state = location_dict[name_state]['state_id']
+                        if not location_dict[name_state]['cities']:
+                            get_city_id_dict(property_location.state, name_state)
+                            location_dict = st.session_state.get('location_dict')
                         city_dict = location_dict[name_state]['cities']
                         name_city = st.selectbox('Escolha a Cidade do Imóvel que Deseja:',
                                                  options=city_dict.keys(),
@@ -166,6 +169,8 @@ def main_page():
                                                  placeholder='Escolha uma Cidade...')
                         if name_city:
                             property_location.city = city_dict[name_city]['city_id']
+                            if not location_dict[name_state]['cities'][name_city]['districts']:
+                                get_district_id_dict(property_location.city, name_city, name_state)
                             district_dict = city_dict[name_city]['districts']
                             property_location.district = st.selectbox('Escolha o Bairro do Imóvel que Deseja:',
                                                                       options=district_dict.keys(),
@@ -305,12 +310,13 @@ def main():
             cookie_actual_session_id = controller.get('lk_actual_session_id')
             if cookie_actual_session_id:
                 actual_session = get_actual_session(cookie_actual_session_id)
-                if actual_session.is_valid:
-                    st.session_state['actual_session'] = actual_session
+                if actual_session:
+                    if actual_session.is_valid:
+                        st.session_state['actual_session'] = actual_session
 
-                    login_routines(actual_session)
-                    need_login = False
-                    main_page()
+                        login_routines(actual_session)
+                        need_login = False
+                        main_page()
     if need_login:
         main_page()
 

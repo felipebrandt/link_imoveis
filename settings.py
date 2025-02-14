@@ -15,27 +15,28 @@ def get_property_type_id_dict():
 
 
 def get_location_dict():
-    all_state = State.get_all_states()
+    all_location = State.select()
     location_dict = {}
-    for state in all_state:
-        location_dict[state.name] = {'state_id': state.state_id, 'cities': get_city_id_dict(state)}
+    for data_location in all_location:
+        location_dict[data_location.name] = {'state_id': data_location.state_id,
+                                             'cities': {}}
     return location_dict
 
 
-def get_city_id_dict(state):
+def get_city_id_dict(state, name_state):
     all_cities = City.get_all_cities(state)
     city_id_dict = {}
     for city in all_cities:
-        city_id_dict[city.name] = {'city_id': city.city_id, 'districts': get_district_id_dict(city)}
-    return city_id_dict
+        city_id_dict[city.name] = {'city_id': city.city_id, 'districts': {}}
+    st.session_state['location_dict'][name_state]['cities'] = city_id_dict
 
 
-def get_district_id_dict(city):
+def get_district_id_dict(city, name_city, name_state):
     all_district = District.get_all_districts(city)
     district_id_dict = {}
     for district in all_district:
         district_id_dict[district.name] = district.district_id
-    return district_id_dict
+    st.session_state['location_dict'][name_state]['cities'][name_city]['districts'] = district_id_dict
 
 
 def get_uuid():
@@ -126,3 +127,5 @@ def login_routines(session):
     st.session_state["logged_real_state"] = session.logged_user_real_state
     st.session_state["logged_broker"] = session.logged_user_broker
     print(session.logged_user_real_state)
+
+get_location_dict()

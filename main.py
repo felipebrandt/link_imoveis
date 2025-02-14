@@ -87,10 +87,11 @@ def main():
             cookie_actual_session_id = controller.get('lk_actual_session_id')
             if cookie_actual_session_id:
                 actual_session = get_actual_session(cookie_actual_session_id)
-                if actual_session.is_valid:
-                    st.session_state['actual_session'] = actual_session
-                    login_routines(actual_session)
-                    need_login = False
+                if actual_session:
+                    if actual_session.is_valid:
+                        st.session_state['actual_session'] = actual_session
+                        login_routines(actual_session)
+                        need_login = False
     if need_login:
         login_page()
 

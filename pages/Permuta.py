@@ -41,11 +41,12 @@ def main():
             cookie_actual_session_id = controller.get('lk_actual_session_id')
             if cookie_actual_session_id:
                 actual_session = get_actual_session(cookie_actual_session_id)
-                if actual_session.is_valid:
-                    st.session_state['actual_session'] = actual_session
-                    login_routines(actual_session)
-                    need_login = False
-                    main_page()
+                if actual_session:
+                    if actual_session.is_valid:
+                        st.session_state['actual_session'] = actual_session
+                        login_routines(actual_session)
+                        need_login = False
+                        main_page()
     if need_login:
         st.sidebar.warning('Faça o Login Para ter Acesso')
         sleep(st.session_state.time)
