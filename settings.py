@@ -95,9 +95,10 @@ def start_page():
 
 def logout_sidebar_page():
     if st.session_state["authenticated"]:
-        st.sidebar.header("Notificações 📢")
         if st.session_state.notificacoes:
-            st.sidebar.markdown(f'🔔:red-background[[{len(st.session_state.notificacoes)}](page/Permuta.py)]')
+            st.sidebar.header("Notificações 📢")
+            if st.sidebar.button(f'🔔:{len(st.session_state.notificacoes)}', type="primary"):
+                st.switch_page('pages/Permuta.py')
 
         user = st.session_state.get('logged_broker')
         if not user:

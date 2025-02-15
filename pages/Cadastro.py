@@ -1,11 +1,12 @@
 import streamlit as st
-from models import Property, URL, RealState, Broker, Address, MatchRequest, PropertyLocation, JobList
+from models import Property, URL, RealState, Broker, Address, MatchRequest, \
+    PropertyLocation, JobList, State, District, City
 from datetime import datetime
 from settings import start_page, get_city_id_dict, get_district_id_dict
 from time import sleep
 from streamlit_cookies_controller import CookieController
 from settings import get_actual_session, logout_sidebar_page, login_routines
-
+from address_utils import get_json_address_by_cep
 controller = CookieController()
 
 
@@ -48,7 +49,7 @@ def main_page():
             with property_value:
                 new_property.value = st.number_input(label='Valor',
                                              placeholder='Digite o Valor do Imóvel',
-                                             step=1000,
+                                             step=100000,
                                              min_value=0)
             with property_area:
                 new_property.area = st.number_input(label='Área (m²)',
@@ -88,8 +89,111 @@ def main_page():
                                             max_chars=1500)
 
             st.header('Endereço do Imóvel')
-            new_property.address = Address()
-            new_property.address = new_property.address.st_form_model_sell('property')
+            if not new_property.address:
+                new_address = Address()
+                key = 'property'
+
+                col_zip_code, col_street = st.columns(2)
+                col_district, col_city, col_state = st.columns(3)
+                col_latitude, col_longitude = st.columns(2)
+
+                with col_zip_code:
+                    new_address.zipcode = st.text_input(label='CEP',
+                                                 placeholder='Digite o CEP do Imóvel',
+                                                 key=key + 'zip_code')
+
+                    if not new_address.zipcode:
+                        st.session_state['has_location_data'] = False
+                    if new_address.zipcode and not st.session_state['has_location_data']:
+                        has_address = Address.get_address_by_cep(new_address.zipcode)
+                        if has_address:
+                            new_address = has_address.get()
+                        else:
+                            json_address = get_json_address_by_cep(new_address.zipcode)
+                            if json_address['status'] == 200:
+                                new_address.created_at = datetime.now()
+                                new_address.street = json_address.get('street')
+                                new_address.state = State.set_get_state(json_address.get('uf'))
+                                new_address.city = City.set_get_city(json_address.get('city'), new_address.state)
+                                new_address.district = District.set_get_district(json_address.get('district'), new_address.city)
+                                new_address.zipcode = json_address.get('cep')
+                                new_address.latitude = json_address.get('latitude')
+                                new_address.longitude = json_address.get('longitude')
+                                st.session_state['has_location_data'] = True
+                                new_address.save()
+                            else:
+                                st.warning('CEP NÃO ENCONTRADO')
+
+                with col_street:
+                    if new_address.zipcode:
+                        st.text_input(label='Rua',
+                                      disabled=True,
+                                      value=new_address.street,
+                                      key=key + 'street')
+                    else:
+                        new_address.street = st.text_input(label='Rua',
+                                                    placeholder='Digite a Rua do Imóvel',
+                                                    key=key + 'street')
+
+                with col_district:
+                    if new_address.zipcode:
+                        print('addres: ', new_address)
+                        st.text_input(label='Bairro',
+                                      disabled=True,
+                                      value=new_address.district.name,
+                                      key=key + 'district')
+                    # elif not new_address.district:
+                    #     new_address.district = st.text_input(label='Bairro',
+                    #                                   placeholder='Digite a Bairro do Imóvel',
+                    #                                   key=key + 'district')
+
+                with col_city:
+                    if new_address.zipcode:
+                        st.text_input(label='Cidade',
+                                      disabled=True,
+                                      value=new_address.city.name,
+                                      key=key + 'city')
+                    else:
+                        new_address.city = st.text_input(label='Cidade',
+                                                  placeholder='Digite a Cidade do Imóvel',
+                                                  key=key + 'city')
+
+                with col_state:
+                    if new_address.zipcode:
+                        st.text_input(label='Estado',
+                                      disabled=True,
+                                      value=new_address.state.name,
+                                      key=key + 'state')
+                    else:
+                        new_address.state = st.text_input(label='Estado',
+                                                   placeholder='Digite a Estado do Imóvel',
+                                                   key=key + 'state')
+
+                with col_latitude:
+                    if new_address.latitude:
+                        float(st.text_input(label='Latitude',
+                                            disabled=True,
+                                            value=new_address.latitude,
+                                            key=key + 'latitude'))
+                    else:
+                        new_address.latitude = st.text_input(label='Latitude',
+                                                      placeholder='Campo Automático',
+                                                      disabled=True,
+                                                      key=key + 'latitude')
+
+                with col_longitude:
+                    if new_address.longitude:
+                        float(st.text_input(label='Longitude',
+                                            disabled=True,
+                                            value=new_address.longitude,
+                                            key=key + 'longitude'))
+                    else:
+                        new_address.longitude = st.text_input(label='Longitude',
+                                                       placeholder='Campo Automático',
+                                                       disabled=True,
+                                                       key=key + 'longitude')
+
+                new_property.address = new_address
             broker = st.session_state.get('logged_broker')
             if broker:
                 new_property.broker = broker.user_id
@@ -139,9 +243,9 @@ def main_page():
                 if ck_property_area:
                     st.session_state['priority_matc_request']['Área Construída'] = 1
                     new_match_request.property_area_min = st.number_input(
-                        'Mínimo de Área Construída do Imóvel Procurado')
+                        'Mínimo de Área Construída do Imóvel Procurado', step=100)
                     new_match_request.property_area_max = st.number_input(
-                        'Máximo de Área Construída do Imóvel Procurado')
+                        'Máximo de Área Construída do Imóvel Procurado', step=100)
 
                 elif st.session_state['priority_matc_request'].get('Área Construída'):
                     st.session_state['priority_matc_request'].pop('Área Construída')
@@ -181,7 +285,7 @@ def main_page():
 
                 priority_list = st.multiselect('Prioridade de Busca', options=st.session_state['priority_matc_request'])
 
-            if new_property.address:
+            if new_property.address.zipcode:
                 new_property.address_description = new_property.address.get_address_description(number, complement)
 
             if not st.session_state.get('submit'):

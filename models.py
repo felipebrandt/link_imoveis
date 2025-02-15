@@ -140,12 +140,18 @@ class District(BaseModel):
         return new_district
 
     @staticmethod
-    def set_get_city(name, city):
-        has_city = District.select().where((District.city == city) & (District.name == name))
-        if has_city:
-            return has_city.get()
+    def set_get_district(name, city):
+        has_district = District.select().where((District.city == city) & (District.name == name))
+        if has_district:
+            print('tem o bairro:')
+            for dis in has_district:
+                print(dis.name)
+            return dis
         else:
-            return District.create_new_district((0, name, city))
+            new_district = District.create_new_district((0, name, city))
+            new_district.save()
+            print('criou o distrito')
+            return new_district
 
 
 class Address(BaseModel):
@@ -165,7 +171,7 @@ class Address(BaseModel):
             self.street = json_address.get('street')
             self.state = State.set_get_state(json_address.get('uf'))
             self.city = City.set_get_city(json_address.get('city'), self.state)
-            self.district = District.set_get_city(json_address.get('district'), self.city)
+            self.district = District.set_get_district(json_address.get('district'), self.city)
             self.zipcode = json_address.get('cep')
             self.latitude = json_address.get('latitude')
             self.longitude = json_address.get('longitude')
@@ -176,11 +182,11 @@ class Address(BaseModel):
         return Address.select().where(Address.zipcode == cep)
 
     def st_form_model_sell(self, key):
-        zip_code, street = st.columns(2)
-        district, city, state = st.columns(3)
-        latitude, longitude = st.columns(2)
+        col_zip_code, col_street = st.columns(2)
+        col_district, col_city, col_state = st.columns(3)
+        col_latitude, col_longitude = st.columns(2)
 
-        with zip_code:
+        with col_zip_code:
             self.zipcode = st.text_input(label='CEP',
                                          placeholder='Digite o CEP do Imóvel',
                                          key=key+'zip_code')
@@ -198,7 +204,7 @@ class Address(BaseModel):
                         self.street = json_address.get('street')
                         self.state = State.set_get_state(json_address.get('uf'))
                         self.city = City.set_get_city(json_address.get('city'), self.state)
-                        self.district = District.set_get_city(json_address.get('district'), self.city)
+                        self.district = District.set_get_district(json_address.get('district'), self.city)
                         self.zipcode = json_address.get('cep')
                         self.latitude = json_address.get('latitude')
                         self.longitude = json_address.get('longitude')
@@ -206,7 +212,7 @@ class Address(BaseModel):
                     else:
                         st.warning('CEP NÃO ENCONTRADO')
 
-        with street:
+        with col_street:
             if self.zipcode:
                 st.text_input(label='Rua',
                               disabled=True,
@@ -217,8 +223,9 @@ class Address(BaseModel):
                                               placeholder='Digite a Rua do Imóvel',
                                             key=key+'street')
 
-        with district:
+        with col_district:
             if self.zipcode:
+                print(self.district.district_id)
                 st.text_input(label='Bairro',
                                                 disabled=True,
                                                 value=self.district.name,
@@ -228,7 +235,7 @@ class Address(BaseModel):
                                               placeholder='Digite a Bairro do Imóvel',
                               key=key+'district')
 
-        with city:
+        with col_city:
             if self.zipcode:
                 st.text_input(label='Cidade',
                                             disabled=True,
@@ -239,7 +246,7 @@ class Address(BaseModel):
                                               placeholder='Digite a Cidade do Imóvel',
                                           key=key+'city')
 
-        with state:
+        with col_state:
             if self.zipcode:
                 st.text_input(label='Estado',
                                              disabled=True,
@@ -250,7 +257,7 @@ class Address(BaseModel):
                                               placeholder='Digite a Estado do Imóvel',
                               key=key+'state')
 
-        with latitude:
+        with col_latitude:
             if self.latitude:
                 float(st.text_input(label='Latitude',
                                                 disabled=True,
@@ -262,7 +269,7 @@ class Address(BaseModel):
                                                 disabled=True,
                                               key=key+'latitude')
 
-        with longitude:
+        with col_longitude:
             if self.longitude:
                 float(st.text_input(label='Longitude',
                                                  disabled=True,
