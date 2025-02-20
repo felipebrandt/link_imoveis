@@ -29,11 +29,12 @@ def main_page():
 
         if register_selected == "Imóveis":
             st.header("Dados do Imóvel")
-            new_property = Property()
-            new_url = URL()
-            new_url.url = 'local/sem_link'
-            new_property.url = new_url
-            new_url.used = True
+            if 'new_property' not in st.session_state:
+                st.session_state['new_property'] = new_property = Property()
+                new_url = URL()
+                new_url.url = 'local/sem_link'
+                st.session_state['new_property'].url = new_url
+                new_url.used = True
 
             property_type, property_value, property_area = st.columns(3)
             bedrooms, bathrooms, garage = st.columns(3)
@@ -43,60 +44,61 @@ def main_page():
                 property_type_name = st.selectbox("Selecione o Tipo da Propriedade?",
                                                   options=st.session_state["property_types_dict"].keys())
                 if property_type_name:
-                    new_property.property_type = st.session_state["property_types_dict"][property_type_name]
+                    st.session_state['new_property'].property_type = st.session_state["property_types_dict"][property_type_name]
 
             with property_value:
-                new_property.value = st.number_input(label='Valor',
+                st.session_state['new_property'].value = st.number_input(label='Valor',
                                              placeholder='Digite o Valor do Imóvel',
                                              step=1000,
                                              min_value=0)
             with property_area:
-                new_property.area = st.number_input(label='Área (m²)',
+                st.session_state['new_property'].area = st.number_input(label='Área (m²)',
                                             placeholder='Digite a Área do Imóvel (m²)',
                                             step=5,
                                             min_value=0)
             with bedrooms:
-                new_property.bedrooms = st.number_input(label='Quartos',
+                st.session_state['new_property'].bedrooms = st.number_input(label='Quartos',
                                                 placeholder='Digite a Quantidade de Quartos)',
                                                 step=1,
                                                 min_value=0)
 
             with bathrooms:
-                new_property.bathrooms = st.number_input(label='Banheiros',
+                st.session_state['new_property'].bathrooms = st.number_input(label='Banheiros',
                                                  placeholder='Digite a Quantidade de Banheiros',
                                                  step=1,
                                                  min_value=0)
 
             with garage:
-                new_property.garage = st.number_input(label='Garagem',
+                st.session_state['new_property'].garage = st.number_input(label='Garagem',
                                               placeholder='Digite a Quantidade de Vagas',
                                               step=1,
                                               min_value=0)
             with land_taxes:
-                new_property.land_taxes = st.number_input(label='IPTU',
+                st.session_state['new_property'].land_taxes = st.number_input(label='IPTU',
                                                   placeholder='Digite o Valor do IPTU do Imóvel',
                                                   step=100,
                                                   min_value=0)
             with condominium_fee:
-                new_property.condominium_fee = st.number_input(label='Taxa de Condomínio',
+                st.session_state['new_property'].condominium_fee = st.number_input(label='Taxa de Condomínio',
                                                        placeholder='Digite o Valor do Condomínio do Imóvel',
                                                        step=100,
                                                        min_value=0)
 
-            new_property.description = st.text_area(label='Descrição',
+            st.session_state['new_property'].description = st.text_area(label='Descrição',
                                             placeholder='Descreva seu Imóvel',
                                             max_chars=1500)
 
             st.header('Endereço do Imóvel')
-            new_property.address = Address()
-            new_property.address = new_property.address.st_form_model_sell('property')
+            if not st.session_state['new_property'].address:
+                st.session_state['new_property'].address = Address()
+            st.session_state['new_property'].address.st_form_model_sell('property')
             broker = st.session_state.get('logged_broker')
             if broker:
-                new_property.broker = broker.user_id
+                st.session_state['new_property'].broker = broker.user_id
 
             real_state = st.session_state.get('logged_real_state')
             if real_state:
-                new_property.real_state = real_state.user_id
+                st.session_state['new_property'].real_state = real_state.user_id
 
             number = st.text_input(label='Numero',
                                    placeholder='Digite o Numero do Imóvel')
@@ -104,8 +106,8 @@ def main_page():
             complement = st.text_input(label='Complemento',
                                        placeholder='Digite o Complemento do Imóvel')
 
-            new_property.for_exchange = st.checkbox('Aceita Permuta?')
-            if new_property.for_exchange:
+            st.session_state['new_property'].for_exchange = st.checkbox('Aceita Permuta?')
+            if st.session_state['new_property'].for_exchange:
                 new_match_request = MatchRequest()
                 if 'priority_matc_request' not in st.session_state:
                     st.session_state['priority_matc_request'] = {}
@@ -181,16 +183,13 @@ def main_page():
 
                 priority_list = st.multiselect('Prioridade de Busca', options=st.session_state['priority_matc_request'])
 
-            if new_property.address:
-                new_property.address_description = new_property.address.get_address_description(number, complement)
-
             if not st.session_state.get('submit'):
                 st.session_state.disable = False
             else:
                 st.session_state.disable = True
             submit_button = st.button(label='Cadastrar', key='submit', disabled=st.session_state.disable)
             if submit_button:
-                if new_property.for_exchange:
+                if st.session_state['new_property'].for_exchange:
                     if len(st.session_state['priority_matc_request']) > 0:
                         if len(priority_list) == len(st.session_state['priority_matc_request']):
                             priority_value = 1
@@ -224,13 +223,21 @@ def main_page():
                         is_possible_to_save = False
 
                 if is_possible_to_save:
-                    new_property.address.created_at = new_url.created_at = new_property.created_at = datetime.now()
-                    new_url.save()
-                    new_property.address.save()
-                    new_property.save()
+                    st.session_state['new_property'].address.created_at = \
+                        st.session_state['new_property'].url.created_at = \
+                        st.session_state['new_property'].created_at = datetime.now()
+                    if st.session_state['new_property'].address:
+                        st.session_state['new_property'].address_description = \
+                            st.session_state['new_property'].address.get_address_description(number,complement)
+                    st.session_state['new_property'].url.save()
+                    st.session_state['new_property'].address.save()
+                    st.session_state['new_property'].save()
                     st.success('Imóvel Cadastrado com Sucesso')
                     st.session_state.disable = True
-                    st.session_state.property = new_property
+
+                    #verificar se ainda necessita desta rotina
+                    st.session_state.property = st.session_state['new_property']
+                    st.session_state.pop('new_property')
                     # st.switch_page('pages/Permuta.py')
                     # st.rerun()
 
@@ -272,10 +279,8 @@ def main_page():
 
             creci = st.text_input("CRECI")
 
-            st.session_state['real_state_address'] = st.session_state['real_state_address'].st_form_model_sell(
-                'real_state')
+            st.session_state['real_state_address'].st_form_model_sell('real_state')
             if st.button('Salvar'):
-                st.session_state['real_state_address'].save()
                 real_state = RealState()
                 real_state.created_at = datetime.now()
                 real_state.username = username

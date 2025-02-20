@@ -132,4 +132,3 @@ def login_routines(session):
 
 
 get_location_dict()
-

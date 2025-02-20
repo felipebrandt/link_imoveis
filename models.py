@@ -79,9 +79,9 @@ class State(BaseModel):
     def set_get_state(uf):
         has_state = State.select().where(State.uf == uf)
         if has_state:
-            return has_state.get()
+            return has_state.get().state_id
         else:
-            return State.create_new_state((0, uf, uf, 1))
+            return State.create_new_state((0, uf, uf, 1)).state_id
 
 
 class City(BaseModel):
@@ -104,9 +104,9 @@ class City(BaseModel):
     def set_get_city(name, state):
         has_city = City.select().where((City.state == state) & (City.name == name))
         if has_city:
-            return has_city.get()
+            return has_city.get().city_id
         else:
-            return City.create_new_city((0, name, state))
+            return City.create_new_city((0, name, state)).city_id
 
     @staticmethod
     def get_all_cities(state):
@@ -143,9 +143,9 @@ class District(BaseModel):
     def set_get_city(name, city):
         has_city = District.select().where((District.city == city) & (District.name == name))
         if has_city:
-            return has_city.get()
+            return has_city.get().district_id
         else:
-            return District.create_new_district((0, name, city))
+            return District.create_new_district((0, name, city)).district_id
 
 
 class Address(BaseModel):
@@ -181,13 +181,17 @@ class Address(BaseModel):
         latitude, longitude = st.columns(2)
 
         with zip_code:
-            self.zipcode = st.text_input(label='CEP',
-                                         placeholder='Digite o CEP do Imóvel',
-                                         key=key+'zip_code')
+            zipcode = st.text_input(label='CEP',
+                                    placeholder='Digite o CEP do Imóvel',
+                                    key=key+'zip_code')
 
-            if not self.zipcode:
+            if not zipcode:
                 st.session_state['has_location_data'] = False
-            if self.zipcode and not st.session_state['has_location_data']:
+            if zipcode != self.zipcode:
+                self.zipcode = None
+                st.session_state['has_location_data'] = False
+            if zipcode and not st.session_state['has_location_data']:
+                self.zipcode = zipcode
                 has_address = Address.get_address_by_cep(self.zipcode)
                 if has_address:
                     self = has_address.get()
@@ -203,6 +207,7 @@ class Address(BaseModel):
                         self.latitude = json_address.get('latitude')
                         self.longitude = json_address.get('longitude')
                         st.session_state['has_location_data'] = True
+                        self.save()
                     else:
                         st.warning('CEP NÃO ENCONTRADO')
 
@@ -274,8 +279,6 @@ class Address(BaseModel):
                                                  disabled=True,
                                     key=key+'longitude')
 
-        if self.zipcode:
-            return self
 
     @staticmethod
     def get_all_cities():
@@ -286,7 +289,8 @@ class Address(BaseModel):
         return tuple(set_cities)
 
     def get_address_description(self, number, complement):
-        return f'{self.street} {number},{complement} {self.district}, {self.city} - {self.state} - {self.zipcode}'
+        return f'{self.street} {number},{complement} {"" if not self.district else self.district.name}, ' \
+               f'{ "" if not self.city else self.city.name} - {"" if not self.state else self.state.name} - {self.zipcode}'
 
     def get_address_soft_description(self):
         return f'{self.district}, {self.city} - {self.zipcode}'
@@ -346,6 +350,7 @@ class Broker(User):
 
 class URL(BaseModel):
     url_id = AutoField(primary_key=True, help_text='Id da URL')
+    property_type = ForeignKeyField(PropertyType, to_field='property_type_id')
     url = TextField()
     used = BooleanField()
 
@@ -377,20 +382,6 @@ class PropertyLocation(BaseModel):
     district = ForeignKeyField(District, to_field='district_id', null=True)
     city = ForeignKeyField(City, to_field='city_id', null=True)
     state = ForeignKeyField(State, to_field='state_id', null=True)
-
-
-class MatchRequest(BaseModel):
-    match_request_id = AutoField(primary_key=True, help_text='Id do Imovel')
-    property_value_min = IntegerField(null=True)
-    property_value_max = IntegerField(null=True)
-    pv_priority = IntegerField(null=True)
-    property_location = ForeignKeyField(PropertyLocation, to_field='property_location_id', null=True)
-    pl_priority = IntegerField(null=True)
-    property_area_min = IntegerField(null=True)
-    property_area_max = IntegerField(null=True)
-    pa_priority = IntegerField(null=True)
-    property_type = ForeignKeyField(PropertyType, to_field='property_type_id', null=True)
-    pt_priority = IntegerField(null=True)
 
 
 class Property(BaseModel):
@@ -450,8 +441,25 @@ class Property(BaseModel):
         return Property.select().where(Property.property_id == property_id)
 
 
+class MatchRequest(BaseModel):
+    match_request_id = AutoField(primary_key=True, help_text='Id do Imovel')
+    property = ForeignKeyField(Property, to_field='property_id')
+    property_value_min = IntegerField(null=True)
+    property_value_max = IntegerField(null=True)
+    pv_priority = IntegerField(null=True)
+    property_location = ForeignKeyField(PropertyLocation, to_field='property_location_id', null=True)
+    pl_priority = IntegerField(null=True)
+    property_area_min = IntegerField(null=True)
+    property_area_max = IntegerField(null=True)
+    pa_priority = IntegerField(null=True)
+    property_type = ForeignKeyField(PropertyType, to_field='property_type_id', null=True)
+    pt_priority = IntegerField(null=True)
+    is_valid = BooleanField()
+
+
 class Match(BaseModel):
     match_id = AutoField(primary_key=True, help_text='Id do Imovel')
+    match_request = ForeignKeyField(MatchRequest, to_field='match_request_id')
     first_property_match = ForeignKeyField(Property, to_field='property_id')
     second_property_match = ForeignKeyField(Property, to_field='property_id')
     match_type = IntegerField()
