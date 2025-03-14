@@ -89,6 +89,7 @@ class City(BaseModel):
     ibge_id = IntegerField(null= True)
     name = CharField(max_length=255, help_text='Bairro do Imóvel')
     state = ForeignKeyField(State, to_field='state_id')
+    value_for_meters = FloatField(null=True)
 
     @staticmethod
     def create_new_city(city_data):
@@ -121,6 +122,7 @@ class District(BaseModel):
     ibge_id = BigIntegerField(null=True)
     name = CharField(max_length=255, help_text='Bairro do Imóvel')
     city = ForeignKeyField(City, to_field='city_id')
+    value_for_meters = FloatField(null=True)
 
     @staticmethod
     def get_all_districts(city):
