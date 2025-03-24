@@ -33,7 +33,7 @@ def main_page():
             if 'new_property' not in st.session_state:
                 st.session_state['new_property'] = new_property = Property()
                 new_url = URL()
-                new_url.url = 'local/sem_link'
+                new_url.url = 'http://127.0.0.1'
                 st.session_state['new_property'].url = new_url
                 new_url.used = True
 
