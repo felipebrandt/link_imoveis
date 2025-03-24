@@ -130,6 +130,7 @@ def login_routines(session):
     st.session_state["authenticated"] = True
     st.session_state["logged_real_state"] = session.logged_user_real_state
     st.session_state["logged_broker"] = session.logged_user_broker
+    st.session_state['match_property_id'] = None
 
 
 def get_notifications():
