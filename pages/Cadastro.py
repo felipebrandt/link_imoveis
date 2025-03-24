@@ -206,6 +206,7 @@ def main_page():
                             new_match_request.created_at = property_location.created_at = datetime.now()
                             property_location.save()
                             new_match_request.property_location = property_location.property_location_id
+                            new_match_request.property = st.session_state['new_property']
                             new_match_request.save()
 
                             new_job = JobList()
