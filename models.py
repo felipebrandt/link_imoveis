@@ -55,6 +55,7 @@ class State(BaseModel):
     ibge_id = IntegerField(null=True)
     name = CharField(max_length=255, help_text='Bairro do Imóvel')
     uf = CharField(max_length=2)
+    value_for_meters = FloatField(null=True)
     country = ForeignKeyField(Country, to_field='country_id')
 
     @staticmethod
@@ -352,7 +353,6 @@ class Broker(User):
 
 class URL(BaseModel):
     url_id = AutoField(primary_key=True, help_text='Id da URL')
-    property_type = ForeignKeyField(PropertyType, to_field='property_type_id')
     url = TextField()
     used = BooleanField()
 
@@ -440,7 +440,17 @@ class Property(BaseModel):
 
     @staticmethod
     def get_property_by_id(property_id):
-        return Property.select().where(Property.property_id == property_id)
+        return Property.select().where(Property.property_id == property_id).get()
+
+
+    @staticmethod
+    def get_user_properties(real_state, broker, offset, limit):
+        query_set = Property.select().order_by(Property.property_id).offset(offset).limit(limit)
+        if real_state:
+            query_set.where(Property.real_state == real_state)
+        if broker:
+            query_set.where(Property.broker == broker)
+        return query_set
 
 
 class MatchRequest(BaseModel):
@@ -461,11 +471,26 @@ class MatchRequest(BaseModel):
 
 class Match(BaseModel):
     match_id = AutoField(primary_key=True, help_text='Id do Imovel')
-    match_request = ForeignKeyField(MatchRequest, to_field='match_request_id')
-    first_property_match = ForeignKeyField(Property, to_field='property_id')
-    second_property_match = ForeignKeyField(Property, to_field='property_id')
+    match_request_a = ForeignKeyField(MatchRequest, to_field='match_request_id')
+    match_request_b = ForeignKeyField(MatchRequest, to_field='match_request_id', null=True)
+    property_match_a = ForeignKeyField(Property, to_field='property_id')
+    property_match_b = ForeignKeyField(Property, to_field='property_id')
     match_type = IntegerField()
-    score = FloatField()
+    score_ab = FloatField(null=True)
+    score_ba = FloatField()
+    notified = BooleanField()
+
+    @staticmethod
+    def get_match_properties(first_property_id):
+        match_query = Match.select().where(((Match.property_match_a == first_property_id) |
+                                           (Match.property_match_b == first_property_id)) &
+                                           (Match.match_type == 2)).order_by(Match.score_ba.desc()).limit(10)
+        interest_query = Match.select().where((Match.property_match_a == first_property_id) &
+                                              (Match.match_type == 1)).order_by(Match.score_ba.desc()).limit(10)
+        other_query = Match.select().where((Match.property_match_b == first_property_id) &
+                                           (Match.match_type == 1)).order_by(Match.score_ba.desc()).limit(10)
+
+        return match_query, interest_query, other_query
 
 
 class Session(BaseModel):
@@ -498,7 +523,8 @@ class Session(BaseModel):
 
     @staticmethod
     def get_status_session(session_uuid):
-        return Session.select().where(Session.session_uuid == session_uuid)
+        print(session_uuid, type(session_uuid))
+        return Session.select().where(Session.session_uuid == session_uuid).first()
 
 
 class JobList(BaseModel):
@@ -511,6 +537,7 @@ class JobList(BaseModel):
 
 
 if __name__ == '__main__':
+    # Match.get_match_properties(13)
     db.create_tables([PropertyType, Country, State, City, District, Address, URL, Property, RealState,
                       Broker, Match, PropertyLocation, MatchRequest, Session, JobList])
     # property_model = Property.select().where(Property.property_id == 1).get()

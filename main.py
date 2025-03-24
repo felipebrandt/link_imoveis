@@ -86,7 +86,9 @@ def main():
         if not st.session_state.get('actual_session'):
             cookie_actual_session_id = controller.get('lk_actual_session_id')
             if cookie_actual_session_id:
+                print(cookie_actual_session_id)
                 actual_session = get_actual_session(cookie_actual_session_id)
+                print(actual_session)
                 if actual_session:
                     if actual_session.is_valid:
                         st.session_state['actual_session'] = actual_session
@@ -100,15 +102,15 @@ if __name__ == "__main__":
     start_page()
     st.image("linkimovel.png")
     main()
-    logout_sidebar_page()
+    sidebar_page()
 
-    nova_notificacao = st.text_input("Digite uma notificação:")
-
-    if st.button("Adicionar Notificação"):
-        if nova_notificacao:
-            st.session_state.notificacoes.append(nova_notificacao)
-            st.toast(f"Notificação adicionada: {nova_notificacao}")
-            time.sleep(1)
-            st.rerun()
+    # nova_notificacao = st.text_input("Digite uma notificação:")
+    #
+    # if st.button("Adicionar Notificação"):
+    #     if nova_notificacao:
+    #         st.session_state.notificacoes += 1
+    #         st.toast(f"Notificação adicionada: {nova_notificacao}")
+    #         time.sleep(1)
+    #         st.rerun()
 
 

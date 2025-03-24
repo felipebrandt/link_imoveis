@@ -4,7 +4,7 @@ from datetime import datetime
 from settings import start_page, get_city_id_dict, get_district_id_dict
 from time import sleep
 from streamlit_cookies_controller import CookieController
-from settings import get_actual_session, logout_sidebar_page, login_routines
+from settings import get_actual_session, sidebar_page, login_routines
 
 controller = CookieController()
 
@@ -318,7 +318,6 @@ def main():
                 if actual_session:
                     if actual_session.is_valid:
                         st.session_state['actual_session'] = actual_session
-
                         login_routines(actual_session)
                         need_login = False
                         main_page()
@@ -373,5 +372,5 @@ def broker_register():
         st.switch_page("main.py")
 
 main()
-logout_sidebar_page()
+sidebar_page()
 

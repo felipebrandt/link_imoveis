@@ -1,4 +1,4 @@
-from models import PropertyType, Session, RealState, State, City, District
+from models import PropertyType, Session, RealState, State, City, District, Match, Property
 from uuid import uuid4
 from streamlit_cookies_controller import CookieController
 import streamlit as st
@@ -84,7 +84,8 @@ def start_page():
         st.session_state['location_dict'] = get_location_dict()
 
     if "notificacoes" not in st.session_state:
-        st.session_state.notificacoes = []
+        st.session_state.notificacoes = 0
+        get_notifications()
 
     if "uuid" not in st.session_state:
         if controller.get('lk_actual_session_id'):
@@ -93,11 +94,12 @@ def start_page():
             st.session_state["uuid"] = get_uuid()
 
 
-def logout_sidebar_page():
+def sidebar_page():
     if st.session_state["authenticated"]:
         st.sidebar.header("Notificações 📢")
-        if st.session_state.notificacoes:
-            st.sidebar.markdown(f'🔔:red-background[[{len(st.session_state.notificacoes)}](page/Permuta.py)]')
+        get_notifications()
+        if st.sidebar.button(f'🔔:{st.session_state.notificacoes}', type="primary"):
+            st.switch_page('pages/Imóveis.py')
 
         user = st.session_state.get('logged_broker')
         if not user:
@@ -112,7 +114,6 @@ def logout_sidebar_page():
 
 def logout_sidebar_page_permute():
     if st.session_state["authenticated"]:
-        st.session_state.notificacoes = []
         user = st.session_state.get('logged_broker')
         if not user:
             user = st.session_state.get('logged_real_state')
@@ -125,10 +126,21 @@ def logout_sidebar_page_permute():
 
 
 def login_routines(session):
-    controller.set('lk_actual_session_id', session.session_uuid)
+    controller.set('lk_actual_session_id', str(session.session_uuid))
     st.session_state["authenticated"] = True
     st.session_state["logged_real_state"] = session.logged_user_real_state
     st.session_state["logged_broker"] = session.logged_user_broker
 
+
+def get_notifications():
+    if st.session_state.get("logged_broker"):
+        st.session_state.notificacoes = Match.select().join(
+            Property, on=(Property.property_id == Match.property_match_a)).where(
+            (Match.notified == False) & (Property.broker == st.session_state.get("logged_broker"))).count()
+
+    if st.session_state.get("logged_real_state"):
+        st.session_state.notificacoes = Match.select().join(
+            Property, on=(Property.property_id == Match.property_match_a)).where(
+            (Match.notified == False) & (Property.real_state == st.session_state.get("logged_real_state"))).count()
 
 get_location_dict()
