@@ -445,12 +445,16 @@ class Property(BaseModel):
 
     @staticmethod
     def get_user_properties(real_state, broker, offset, limit):
-        query_set = Property.select().order_by(Property.property_id).offset(offset).limit(limit)
         if real_state:
-            query_set.where(Property.real_state == real_state)
+            if broker:
+                return Property.select().where(
+                    (Property.real_state == real_state) &
+                    (Property.broker == broker)).order_by(Property.property_id).offset(offset).limit(limit)
+            return Property.select().where(
+                Property.real_state == real_state).order_by(Property.property_id).offset(offset).limit(limit)
         if broker:
-            query_set.where(Property.broker == broker)
-        return query_set
+            return Property.select().where(Property.broker == broker).order_by(
+                Property.property_id).offset(offset).limit(limit)
 
 
 class MatchRequest(BaseModel):

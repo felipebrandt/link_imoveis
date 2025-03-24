@@ -107,8 +107,8 @@ def sidebar_page():
 
         st.sidebar.title(user.name)
         if st.sidebar.button("Sair"):
-            st.session_state["authenticated"] = False
             st.session_state["actual_session"].end_session()
+            st.session_state["authenticated"] = False
             st.switch_page("main.py")
 
 
@@ -120,8 +120,8 @@ def logout_sidebar_page_permute():
 
         st.sidebar.title(user.name)
         if st.sidebar.button("Sair"):
-            st.session_state["authenticated"] = False
             st.session_state["actual_session"].end_session()
+            st.session_state["authenticated"] = False
             st.switch_page("main.py")
 
 
