@@ -117,11 +117,10 @@ def main_page():
                 if ck_property_value:
                     st.session_state['priority_matc_request']['Valor do Imóvel'] = 1
                     new_match_request.property_value_min, \
-                    new_match_request.property_value_max = get_percent(
-                        st.slider('Valor do Imóvel Procurado (% em Relação ao seu Imóvel)',
+                    new_match_request.property_value_max = st.slider('Valor do Imóvel Procurado (% em Relação ao seu Imóvel)',
                                   min_value=-49,
                                   max_value=49,
-                                  value=(-10, 10)))
+                                  value=(-10, 10))
                 elif st.session_state['priority_matc_request'].get('Valor do Imóvel'):
 
                     st.session_state['priority_matc_request'].pop('Valor do Imóvel')
