@@ -197,7 +197,16 @@ class Address(BaseModel):
                 self.zipcode = zipcode
                 has_address = Address.get_address_by_cep(self.zipcode)
                 if has_address:
-                    self = has_address.get()
+                    actual_address = has_address.get()
+                    self.created_at = actual_address.created_at
+                    self.street = actual_address.street
+                    self.state = actual_address.state
+                    self.city = actual_address.city
+                    self.district = actual_address.district
+                    self.zipcode = actual_address.zipcode
+                    self.latitude = actual_address.latitude
+                    self.longitude = actual_address.longitude
+                    st.session_state['has_location_data'] = True
                 else:
                     json_address = get_json_address_by_cep(self.zipcode)
                     if json_address['status'] == 200:
@@ -541,6 +550,7 @@ class JobList(BaseModel):
 
 
 if __name__ == '__main__':
+
     # Match.get_match_properties(13)
     db.create_tables([PropertyType, Country, State, City, District, Address, URL, Property, RealState,
                       Broker, Match, PropertyLocation, MatchRequest, Session, JobList])

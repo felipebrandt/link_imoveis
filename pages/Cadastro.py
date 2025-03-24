@@ -16,6 +16,7 @@ def get_percent(range_tuple):
 def main_page():
     if st.session_state.get("authenticated"):
         is_possible_to_save = True
+        property_location = None
         register_selected = st.selectbox('Selecione o Tipo de Cadastro', options=("Imóveis", "Corretor"))
 
         if 'last' not in st.session_state:
@@ -148,11 +149,11 @@ def main_page():
                 elif st.session_state['priority_matc_request'].get('Área Construída'):
                     st.session_state['priority_matc_request'].pop('Área Construída')
 
-                property_location = PropertyLocation()
 
                 ck_property_location = st.checkbox('Localização do Imóvel')
 
                 if ck_property_location:
+                    property_location = PropertyLocation()
                     st.session_state['priority_matc_request']['Localização'] = 1
                     location_dict = st.session_state.get('location_dict')
                     name_state = st.selectbox('Escolha o Estado do Imóvel que Deseja:',
@@ -174,10 +175,12 @@ def main_page():
                             if not location_dict[name_state]['cities'][name_city]['districts']:
                                 get_district_id_dict(property_location.city, name_city, name_state)
                             district_dict = city_dict[name_city]['districts']
-                            property_location.district = st.selectbox('Escolha o Bairro do Imóvel que Deseja:',
+                            name_district = st.selectbox('Escolha o Bairro do Imóvel que Deseja:',
                                                                       options=district_dict.keys(),
                                                                       index=None,
                                                                       placeholder='Escolha um Bairro...')
+                            if name_district:
+                                property_location.district = district_dict[name_district]
                 elif st.session_state['priority_matc_request'].get('Localização'):
                     st.session_state['priority_matc_request'].pop('Localização')
 
@@ -203,9 +206,13 @@ def main_page():
                                 if priority == 'Localização':
                                     new_match_request.pl_priority = priority_value
                                 priority_value += 1
-                            new_match_request.created_at = property_location.created_at = datetime.now()
-                            property_location.save()
-                            new_match_request.property_location = property_location.property_location_id
+
+                            if property_location:
+                                property_location.created_at = datetime.now()
+                                property_location.save()
+                                new_match_request.property_location = property_location.property_location_id
+
+                            new_match_request.created_at = datetime.now()
                             new_job = JobList()
                             new_job.created_at = datetime.now()
                             new_job.session = st.session_state['actual_session'].session_id
@@ -223,14 +230,17 @@ def main_page():
                     st.session_state['new_property'].address.created_at = \
                         st.session_state['new_property'].url.created_at = \
                         st.session_state['new_property'].created_at = datetime.now()
-                    if st.session_state['new_property'].address:
-                        st.session_state['new_property'].address_description = \
-                            st.session_state['new_property'].address.get_address_description(number,complement)
                     st.session_state['new_property'].url.save()
                     st.session_state['new_property'].address.save()
+
+                    if st.session_state['new_property'].address:
+                        st.session_state['new_property'].address_description = \
+                            st.session_state['new_property'].address.get_address_description(number, complement)
+
                     st.session_state['new_property'].save()
                     if st.session_state['new_property'].for_exchange:
                         new_match_request.property = st.session_state['new_property'].property_id
+                        new_match_request.is_valid = True
                         new_match_request.save()
                         new_job.match_request = new_match_request.match_request_id
                         new_job.save()
@@ -240,8 +250,6 @@ def main_page():
                     #verificar se ainda necessita desta rotina
                     st.session_state.property = st.session_state['new_property']
                     st.session_state.pop('new_property')
-                    # st.switch_page('pages/Permuta.py')
-                    # st.rerun()
 
         else:
             broker_register()

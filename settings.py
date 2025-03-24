@@ -135,13 +135,13 @@ def login_routines(session):
 
 def get_notifications():
     if st.session_state.get("logged_broker"):
-        st.session_state.notificacoes = Match.select().join(
+        st.session_state.notificacoes = Match.select(Property.property_id).join(
             Property, on=(Property.property_id == Match.property_match_a)).where(
-            (Match.notified == False) & (Property.broker == st.session_state.get("logged_broker"))).count()
+            (Match.notified == False) & (Property.broker == st.session_state.get("logged_broker"))).distinct().count()
 
     if st.session_state.get("logged_real_state"):
-        st.session_state.notificacoes = Match.select().join(
+        st.session_state.notificacoes = Match.select(Property.property_id).join(
             Property, on=(Property.property_id == Match.property_match_a)).where(
-            (Match.notified == False) & (Property.real_state == st.session_state.get("logged_real_state"))).count()
+            (Match.notified == False) & (Property.real_state == st.session_state.get("logged_real_state"))).distinct().count()
 
 get_location_dict()
