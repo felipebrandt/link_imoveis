@@ -206,15 +206,11 @@ def main_page():
                             new_match_request.created_at = property_location.created_at = datetime.now()
                             property_location.save()
                             new_match_request.property_location = property_location.property_location_id
-                            new_match_request.property = st.session_state['new_property'].property_id
-                            new_match_request.save()
-
                             new_job = JobList()
                             new_job.created_at = datetime.now()
                             new_job.session = st.session_state['actual_session'].session_id
                             new_job.job_status = 0
-                            new_job.match_request = new_match_request.match_request_id
-                            new_job.save()
+
 
                         else:
                             st.warning('Selecione Todas as Prioridades')
@@ -233,6 +229,11 @@ def main_page():
                     st.session_state['new_property'].url.save()
                     st.session_state['new_property'].address.save()
                     st.session_state['new_property'].save()
+                    if st.session_state['new_property'].for_exchange:
+                        new_match_request.property = st.session_state['new_property'].property_id
+                        new_match_request.save()
+                        new_job.match_request = new_match_request.match_request_id
+                        new_job.save()
                     st.success('Imóvel Cadastrado com Sucesso')
                     st.session_state.disable = True
 
