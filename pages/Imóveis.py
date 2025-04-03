@@ -33,8 +33,11 @@ def main_page():
             col1.metric(f"Propriedade: {property_model.property_id}",
                         f"R$: {round(property_model.value, 2):.2f}", border=True)
             if st.button(label='Ver Match',key=property_model.property_id):
+                if st.session_state.get('match_lists'):
+                    st.session_state.pop('match_lists')
                 st.session_state['match_property_id'] = property_model.property_id
                 st.switch_page(page='pages/Permuta.py')
+
             st.markdown("""<hr style="height:3px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
 
 

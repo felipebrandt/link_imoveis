@@ -4,6 +4,7 @@ from db_connection import db
 from address_utils import get_json_address_by_cep, get_cep_by_olx_address
 import streamlit as st
 from hashlib import sha256
+import re
 
 
 class BaseModel(Model):
@@ -177,6 +178,17 @@ class Address(BaseModel):
     @staticmethod
     def get_address_by_cep(cep):
         return Address.select().where(Address.zipcode == cep)
+
+    def get_mean_value(self):
+        mean_value = self.district.value_for_meters
+        if mean_value:
+            return mean_value
+        mean_value = self.city.value_for_meters
+        if mean_value:
+            return mean_value
+        mean_value = self.state.value_for_meters
+        if mean_value:
+            return mean_value
 
     def st_form_model_sell(self, key):
         zip_code, street = st.columns(2)
@@ -549,10 +561,45 @@ class JobList(BaseModel):
     #job_status: 0 = Waiting, 1 = Processing 2 = Fail
 
 
-if __name__ == '__main__':
+class Message(BaseModel):
+    message_id = AutoField(primary_key=True, help_text='Id do Imovel')
+    sender_property = ForeignKeyField(Property, to_field='property_id')
+    receiver_property = ForeignKeyField(Property, to_field='property_id')
+    message = CharField(max_length=255)
 
+    def clean_message(self):
+        # Padrão para detectar e-mails
+        email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+        # Padrão para detectar números de telefone (formatos comuns)
+        tel_pattern = r'\b(?:\+\d{1,3}\s?)?(?:\(?\d{2,4}\)?[\s.-]?)?\d{4,5}[\s.-]?\d{4}\b'
+        # Padrão para detectar URLs
+        url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
+
+        self.message = re.sub(email_pattern, '*****', self.message)
+        self.message = re.sub(tel_pattern, '*****', self.message)
+        self.message = re.sub(url_pattern, '*****', self.message)
+
+    def send_massage(self):
+        self.clean_message()
+        self.save()
+        new_notification = Notification()
+        new_notification.message_notification = self.message_id
+        new_notification.is_notified = False
+        new_notification.created_at = datetime.now()
+        new_notification.save()
+
+
+class Notification(BaseModel):
+    notification_id = AutoField(primary_key=True, help_text='Id do Imovel')
+    match_notification = ForeignKeyField(Match, to_field='match_id', null=True)
+    message_notification = ForeignKeyField(Message, to_field='message_id', null=True)
+    broker_notification = ForeignKeyField(Broker, to_field='user_id', null=True)
+    is_notified = BooleanField()
+
+
+if __name__ == '__main__':
     # Match.get_match_properties(13)
     db.create_tables([PropertyType, Country, State, City, District, Address, URL, Property, RealState,
-                      Broker, Match, PropertyLocation, MatchRequest, Session, JobList])
+                      Broker, Match, PropertyLocation, MatchRequest, Session, JobList, Message, Notification])
     # property_model = Property.select().where(Property.property_id == 1).get()
     # property_model.get_similar_property((-0.1, 0.2), 'Casa', 'Florianópolis')
