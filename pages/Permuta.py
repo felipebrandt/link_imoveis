@@ -5,8 +5,6 @@ from models import Match, URL, Property, Notification, Message
 import pandas as pd
 from datetime import datetime
 
-from streamlit_modal import Modal
-
 controller = CookieController()
 
 if st.session_state.get('match_property_id'):
