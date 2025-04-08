@@ -41,7 +41,6 @@ def main_page():
             st.markdown("""<hr style="height:3px;border:none;color:#333;background-color:#333;" /> """, unsafe_allow_html=True)
 
 
-
 def main():
     start_page()
     need_login = True

@@ -99,7 +99,7 @@ def sidebar_page():
         st.sidebar.header("Notificações 📢")
         get_notifications()
         if st.sidebar.button(f'🔔:{st.session_state.notificacoes}', type="primary"):
-            st.switch_page('pages/Imóveis.py')
+            st.switch_page('notification.py')
 
         user = st.session_state.get('logged_broker')
         if not user:

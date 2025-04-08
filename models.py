@@ -591,6 +591,8 @@ class Message(BaseModel):
 
 class Notification(BaseModel):
     notification_id = AutoField(primary_key=True, help_text='Id do Imovel')
+    user_real_state = ForeignKeyField(RealState, to_field='user_id', null=True)
+    user_broker = ForeignKeyField(Broker, to_field='user_id', null=True)
     match_notification = ForeignKeyField(Match, to_field='match_id', null=True)
     message_notification = ForeignKeyField(Message, to_field='message_id', null=True)
     broker_notification = ForeignKeyField(Broker, to_field='user_id', null=True)

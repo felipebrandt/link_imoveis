@@ -46,7 +46,7 @@ if st.session_state.get('match_property_id'):
                 col1, col2, col3, col4 = st.columns((3, 3, 2, 1), vertical_alignment="center")
                 col1.metric(f"Propriedade: {match.property_match_a}",
                             f"Score: {int(match.score_ab)}",
-                            delta=f"R$: {int(match.property_match_a.value)}", delta_color='off', border=True)
+                            delta=f"R$: {int(match.property_match_a.value)}", delta_color='off', border=True, help='dsfsdfsd')
                 col2.metric(f"M² na Região R$: {int(region_mean_value)}",
                             f"R$: {int(propriety_mean_value)}/ M²",
                             delta=int(propriety_mean_value - region_mean_value),
