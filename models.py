@@ -477,6 +477,26 @@ class Property(BaseModel):
             return Property.select().where(Property.broker == broker).order_by(
                 Property.property_id).offset(offset).limit(limit)
 
+    def get_user_name(self):
+        if self.broker:
+            return self.broker.name
+        if self.real_state:
+            return self.real_state.name
+        return 'Anônimo'
+
+    def get_user_id(self):
+        if self.broker:
+            return self.broker_id
+        if self.real_state:
+            return self.real_state_id
+
+    def is_logged_user(self, real_state, broker):
+        if broker and broker.user_id == self.broker_id:
+            return True
+        if real_state and real_state.user_id == self.real_state_id:
+            return True
+        return False
+
 
 class MatchRequest(BaseModel):
     match_request_id = AutoField(primary_key=True, help_text='Id do Imovel')
@@ -548,7 +568,6 @@ class Session(BaseModel):
 
     @staticmethod
     def get_status_session(session_uuid):
-        print(session_uuid, type(session_uuid))
         return Session.select().where(Session.session_uuid == session_uuid).first()
 
 
@@ -557,12 +576,12 @@ class JobList(BaseModel):
     session = ForeignKeyField(Session, to_field='session_id')
     match_request = ForeignKeyField(MatchRequest, to_field='match_request_id')
     job_status = IntegerField()
-
     #job_status: 0 = Waiting, 1 = Processing 2 = Fail
 
 
 class Message(BaseModel):
     message_id = AutoField(primary_key=True, help_text='Id do Imovel')
+    root_message = ForeignKeyField('self', null=True, backref='respostas', on_delete='SET NULL')
     sender_property = ForeignKeyField(Property, to_field='property_id')
     receiver_property = ForeignKeyField(Property, to_field='property_id')
     message = CharField(max_length=255)
@@ -586,6 +605,7 @@ class Message(BaseModel):
         new_notification.message_notification = self.message_id
         new_notification.is_notified = False
         new_notification.created_at = datetime.now()
+        new_notification.user_real_state = self.receiver_property.real_state_id
         new_notification.save()
 
 
@@ -601,7 +621,8 @@ class Notification(BaseModel):
 
 if __name__ == '__main__':
     # Match.get_match_properties(13)
-    db.create_tables([PropertyType, Country, State, City, District, Address, URL, Property, RealState,
-                      Broker, Match, PropertyLocation, MatchRequest, Session, JobList, Message, Notification])
+    db.create_tables([Message, Notification])
+    # db.create_tables([PropertyType, Country, State, City, District, Address, URL, Property, RealState,
+    #                   Broker, Match, PropertyLocation, MatchRequest, Session, JobList, Message, Notification])
     # property_model = Property.select().where(Property.property_id == 1).get()
     # property_model.get_similar_property((-0.1, 0.2), 'Casa', 'Florianópolis')

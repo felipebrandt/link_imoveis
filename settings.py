@@ -1,4 +1,4 @@
-from models import PropertyType, Session, RealState, State, City, District, Match, Property
+from models import PropertyType, Session, RealState, State, City, District, Match, Property, Notification
 from uuid import uuid4
 from streamlit_cookies_controller import CookieController
 import streamlit as st
@@ -59,6 +59,9 @@ def get_all_real_states():
 
 
 def start_page():
+    if 'message_notify' not in st.session_state:
+        st.session_state['message_notify'] = None
+
     st.session_state["time"] = 2
     if 'actual_session' not in st.session_state:
         st.session_state['actual_session'] = None
@@ -99,7 +102,7 @@ def sidebar_page():
         st.sidebar.header("Notificações 📢")
         get_notifications()
         if st.sidebar.button(f'🔔:{st.session_state.notificacoes}', type="primary"):
-            st.switch_page('notification.py')
+            st.switch_page('pages/Inbox.py')
 
         user = st.session_state.get('logged_broker')
         if not user:
@@ -135,13 +138,13 @@ def login_routines(session):
 
 def get_notifications():
     if st.session_state.get("logged_broker"):
-        st.session_state.notificacoes = Match.select(Property.property_id).join(
-            Property, on=(Property.property_id == Match.property_match_a)).where(
-            (Match.notified == False) & (Property.broker == st.session_state.get("logged_broker"))).distinct().count()
+        st.session_state.notificacoes = Notification.select().where(
+            (Notification.is_notified == False) &
+            (Notification.user_broker == st.session_state.get("logged_broker"))).count()
 
     if st.session_state.get("logged_real_state"):
-        st.session_state.notificacoes = Match.select(Property.property_id).join(
-            Property, on=(Property.property_id == Match.property_match_a)).where(
-            (Match.notified == False) & (Property.real_state == st.session_state.get("logged_real_state"))).distinct().count()
+        st.session_state.notificacoes = st.session_state.notificacoes = Notification.select().where(
+            (Notification.is_notified == False) &
+            (Notification.user_real_state == st.session_state.get("logged_real_state"))).count()
 
 get_location_dict()

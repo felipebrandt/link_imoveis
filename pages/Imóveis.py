@@ -2,7 +2,7 @@ import streamlit as st
 from pandas import DataFrame
 from models import Property, Address, Match, URL
 from time import sleep
-from settings import start_page, get_actual_session, logout_sidebar_page_permute, login_routines
+from settings import start_page, get_actual_session, sidebar_page, login_routines
 from streamlit_cookies_controller import CookieController
 import pandas as pd
 controller = CookieController()
@@ -80,5 +80,5 @@ def main():
 
 
 main()
-logout_sidebar_page_permute()
+sidebar_page()
 

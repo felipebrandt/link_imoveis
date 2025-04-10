@@ -155,7 +155,6 @@ def main():
         if not st.session_state.get('actual_session'):
             cookie_actual_session_id = controller.get('lk_actual_session_id')
             if cookie_actual_session_id:
-                print(cookie_actual_session_id)
                 actual_session = get_actual_session(cookie_actual_session_id)
                 if actual_session:
                     if actual_session.is_valid:
